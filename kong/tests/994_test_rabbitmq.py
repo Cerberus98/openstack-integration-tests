@@ -29,6 +29,7 @@ from pprint import pprint
 
 
 class TestRabbitMQ(tests.FunctionalTest):
+    @tests.tagged('rabbitmq')
     @tests.skip_unless(pika, "pika not available")
     def test_000_ghetto(self):
         """
@@ -38,7 +39,6 @@ class TestRabbitMQ(tests.FunctionalTest):
         self.rabbitmq['host'] = self.config['rabbitmq']['host']
         self.rabbitmq['user'] = self.config['rabbitmq']['user']
         self.rabbitmq['pass'] = self.config['rabbitmq']['password']
-    test_000_ghetto.tags = ['rabbitmq']
 
     def _cnx(self):
         # TODO: Figuring out what's going with creds
@@ -49,13 +49,14 @@ class TestRabbitMQ(tests.FunctionalTest):
         channel = connection.channel()
         return (channel, connection)
 
+    @tests.tagged('rabbitmq')
     @tests.skip_unless(pika, "pika not available")
     def test_001_connect(self):
         channel, connection = self._cnx()
         self.assert_(channel)
         connection.close()
-    test_001_connect.tags = ['rabbitmq']
 
+    @tests.tagged('rabbitmq')
     @tests.skip_unless(pika, "pika not available")
     def test_002_send_receive_msg(self):
         unitmsg = 'Hello from unittest'
@@ -76,8 +77,8 @@ class TestRabbitMQ(tests.FunctionalTest):
                               queue='u1',
                               no_ack=True)
         channel.start_consuming()
-    test_002_send_receive_msg.tags = ['rabbitmq']
 
+    @tests.tagged('rabbitmq')
     @tests.skip_unless(pika, "pika not available")
     def test_003_send_receive_msg_with_persistense(self):
         unitmsg = 'Hello from unittest with Persistense'
@@ -104,4 +105,3 @@ class TestRabbitMQ(tests.FunctionalTest):
                               queue='u2')
 
         channel.start_consuming()
-    test_003_send_receive_msg_with_persistense.tags = ['rabbitmq']

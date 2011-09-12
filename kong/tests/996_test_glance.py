@@ -25,6 +25,8 @@ from kong import tests
 
 
 class TestGlanceAPI(tests.FunctionalTest):
+
+    @tests.tagged('glance')
     def test_001_connect_to_glance_api(self):
         """
         Verifies ability to connect to glance api,
@@ -41,8 +43,9 @@ class TestGlanceAPI(tests.FunctionalTest):
         self.assertEqual(200, response.status)
         data = json.loads(content)
         self.assertTrue('images' in data)
-    test_001_connect_to_glance_api.tags = ['glance']
+    #test_001_connect_to_glance_api.tags = ['glance']
 
+    @tests.tagged('glance', 'nova')
     def test_002_upload_kernel_to_glance(self):
         """
         Uploads a test kernal to glance api
@@ -71,8 +74,8 @@ class TestGlanceAPI(tests.FunctionalTest):
         self.glance['kernel_id'] = data['image']['id']
         self.assertEqual(data['image']['name'], "test-kernel")
         self.assertEqual(data['image']['checksum'], self._md5sum_file(kernel))
-    test_002_upload_kernel_to_glance.tags = ['glance', 'nova']
 
+    @tests.tagged('glance', 'nova')
     def test_003_upload_initrd_to_glance(self):
         """
         Uploads a test initrd to glance api
@@ -107,8 +110,8 @@ class TestGlanceAPI(tests.FunctionalTest):
         self.glance['ramdisk_id'] = data['image']['id']
         self.assertEqual(data['image']['name'], "test-ramdisk")
         self.assertEqual(data['image']['checksum'], self._md5sum_file(initrd))
-    test_003_upload_initrd_to_glance.tags = ['glance', 'nova']
 
+    @tests.tagged('glance', 'nova')
     def test_004_upload_image_to_glance(self):
         """
         Uploads a test image to glance api, and
@@ -147,8 +150,8 @@ class TestGlanceAPI(tests.FunctionalTest):
         self.glance['image_id'] = data['image']['id']
         self.assertEqual(data['image']['name'], "test-image")
         self.assertEqual(data['image']['checksum'], self._md5sum_file(image))
-    test_004_upload_image_to_glance.tags = ['glance', 'nova']
 
+    @tests.tagged('glance')
     def test_005_set_image_meta_property(self):
         if 'apiver' in self.glance:
             path = "http://%s:%s/%s/images/%s" % (self.glance['host'],
@@ -177,8 +180,8 @@ class TestGlanceAPI(tests.FunctionalTest):
         if self.glance['ramdisk_id']:
             self.assertEqual(data['image']['properties']['ramdisk_id'],
                              str(self.glance['ramdisk_id']))
-    test_005_set_image_meta_property.tags = ['glance']
 
+    @tests.tagged('glance')
     def test_006_list_image_metadata(self):
         image = self.config['environment']['image']
         if 'apiver' in self.glance:
@@ -203,4 +206,3 @@ class TestGlanceAPI(tests.FunctionalTest):
         if self.glance['ramdisk_id']:
             self.assertEqual(response['x-image-meta-property-ramdisk_id'],
                              str(self.glance['ramdisk_id']))
-    test_006_list_image_metadata.tags = ['glance']

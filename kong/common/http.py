@@ -1,3 +1,4 @@
+from kong import config
 from kong import exceptions
 
 import httplib2
@@ -12,6 +13,10 @@ class Client(object):
     def __init__(self, host='localhost', port=80, base_url=''):
         #TODO: join these more robustly
         self.base_url = "http://%s:%s/%s" % (host, port, base_url)
+        cfg = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                   os.path.pardir, os.path.pardir,
+                                   "etc", "config.ini"))
+        self.config = config.StackConfig(cfg)
 
     def poll_request(self, method, url, check_response, **kwargs):
 

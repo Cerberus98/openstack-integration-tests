@@ -8,7 +8,7 @@ class NovaConfig(object):
         """Initialize a Nova-specific configuration object."""
         self.conf = conf
 
-    def get(self, item_name, default_value):
+    def get(self, item_name, default_value=None):
         try:
             return self.conf.get("nova", item_name)
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
@@ -54,14 +54,23 @@ class NovaConfig(object):
         """Timeout in seconds to use when connecting via ssh."""
         return float(self.get("build_timeout", 300))
 
+class KeystoneConfig(object):
+    def __init__(self, conf):
+        """Initialize a Keystone-specific configuration object."""
+        self.conf = conf
 
+    def get(self, item_name, default_value=None):
+        try:
+            return self.conf.get("keystone", item_name)
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+            return default_value
 
 class EnvironmentConfig(object):
     def __init__(self, conf):
         """Initialize a Environment-specific configuration object."""
         self.conf = conf
 
-    def get(self, item_name, default_value):
+    def get(self, item_name, default_value=None):
         try:
             return self.conf.get("environment", item_name)
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
@@ -104,6 +113,7 @@ class StackConfig(object):
         self._conf = self.load_config(self._path)
         self.nova = NovaConfig(self._conf)
         self.env = EnvironmentConfig(self._conf)
+        self.keystone = KeystoneConfig(self._conf)
 
     def load_config(self, path=None):
         """Read configuration from given path and return a config object."""

@@ -78,6 +78,19 @@ class skip_unless(object):
         return _skipper
 
 
+class tagged(object):
+    def __init__(self, *args):
+        self.tags = args
+
+    def __call__(self, func):
+        def _wrapped(*args, **kwargs):
+            return func(*args, **kwargs)
+        _wrapped.tags = self.tags
+        _wrapped.__name__ = func.__name__
+        _wrapped.__doc__ = func.__doc__
+        return _wrapped
+
+
 class FunctionalTest(unittest2.TestCase):
     def setUp(self):
         global GLANCE_DATA, NOVA_DATA, SWIFT_DATA, RABBITMQ_DATA

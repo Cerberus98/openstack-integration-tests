@@ -24,8 +24,46 @@ class API(kong.common.http.Client):
         self.user = user
         self.api_key = api_key
         self.project_id = project_id
-        # Default to same as base_url, but will be change on auth
+        # Default to same as base_url, but will change on auth
         self.management_url = self.base_url
+
+    def authenticate_keystone(self, user, password, tenant_id):
+        """Request and return an authentication from Keystone
+
+         :param user: The username we're authenticating.
+         :param password: The password for the user
+         :param project_id: the tenant in Keystone
+         :returns: Authentication token (string)
+         :raises: KeyError if authentication fails.
+        """
+        headers = {
+            'Content-Type': 'application/json'
+        }
+
+        tenant_id = tenant_id or self.config.nova.get('project_id')
+        req_body = json.dumps({'passwordCredentials': {
+                                  'username': user,
+                                  'password': password,
+                                  'tenantId': tenant_id}})
+
+        host = self.config.keystone.get('host')
+        port = self.config.keystone.get('port')
+        keystone_ver = self.config.keystone.get('apiver')
+
+        url = "http://%s:%s/%s" % (host, port, keystone_ver)
+        resp, body = super(API, self).request('POST', '/tokens',
+                                              headers=headers,
+                                              base_url=url,
+                                              body=req_body)
+        try:
+            body = json.loads(body)
+            #FIXME(mdietz): this is atrocious
+            self.management_url = \
+                    body['auth']['serviceCatalog']['nova'][0]['publicURL']
+            return body['auth']['token']['id']
+        except KeyError:
+            print "Failed to authenticate user"
+            raise
 
     def authenticate(self, user, api_key, project_id):
         """Request and return an authentication token from Nova.
@@ -36,6 +74,9 @@ class API(kong.common.http.Client):
         :raises: KeyError if authentication fails.
 
         """
+        if self.config.nova.get('auth_with_keystone'):
+            return self.authenticate_keystone(user, api_key, project_id)
+
         headers = {
             'X-Auth-User': user,
             'X-Auth-Key': api_key,
@@ -43,7 +84,6 @@ class API(kong.common.http.Client):
         }
         resp, body = super(API, self).request('GET', '', headers=headers,
                                               base_url=self.base_url)
-
         try:
             self.management_url = resp['x-server-management-url']
             return resp['x-auth-token']
@@ -102,6 +142,7 @@ class API(kong.common.http.Client):
         """
         headers = kwargs.get('headers', {})
         project_id = kwargs.get('project_id', self.project_id)
+        project_id = project_id or self.config.nova.get('project_id')
 
         headers['X-Auth-Token'] = self.authenticate(self.user, self.api_key,
                                                     self.project_id)

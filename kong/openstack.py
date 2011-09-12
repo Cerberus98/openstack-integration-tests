@@ -1,4 +1,3 @@
-import kong.config
 import kong.nova
 
 
